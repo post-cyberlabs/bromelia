@@ -84,29 +84,27 @@ def process_answer(association, message):
 
     end_to_end_key = message.header.end_to_end.hex()
     hop_by_hop_key = message.header.hop_by_hop.hex()
-
     if end_to_end_key in association.end_to_end_identifiers:
 
         if hop_by_hop_key in association.pending_requests:
 
             if message.header.end_to_end == association.pending_requests[hop_by_hop_key].header.end_to_end:
-
                 association.pending_requests.pop(hop_by_hop_key)
                 association.postprocess_recv_answers.update({hop_by_hop_key: message})
                 association.num_answers += 1
                 association.postprocess_recv_answers_ready.set()
 
             else:
-                pass
                 """suspicious peer"""
+                logging.warning("Answer dropped: Suspicious peer")
 
         else:
-            pass
-            """detected multiple identical answers, which MAY be received 
-            as a result of a failover. PUT HERE code to start procedure to 
+            """detected multiple identical answers, which MAY be received
+            as a result of a failover. PUT HERE code to start procedure to
             pass the connection handler to another diameter association.
             """
-    
+            logging.warning("Answer dropped: no matching pending request (could be failover answer)")
+
     association.postprocess_recv_answers_lock.release()
 
 
@@ -123,28 +121,29 @@ class ProcessDiameterMessage:
                 if message.header.end_to_end == association.pending_requests[hop_by_hop_key].header.end_to_end:
                     association.pending_requests.pop(hop_by_hop_key)
                 else:
-                    pass
                     """suspicious peer"""
+                    logging.warning("DiameterMessage answer dropped: Suspicious peer")
 
             else:
-                pass
-                """detected multiple identical answers, which MAY be received 
-                as a result of a failover. PUT HERE code to start procedure to 
+                """detected multiple identical answers, which MAY be received
+                as a result of a failover. PUT HERE code to start procedure to
                 pass the connection handler to another diameter association.
                 """
-    
+                logging.warning("DiameterMessage answer dropped: no matching pending request (could be failover answer")
+
+
     @staticmethod
     def is_valid_origin_host_avp(avp, connection):
         if avp.code == ORIGIN_HOST_AVP_CODE:
-            
+
             process_message_logging.debug(f"Origin-Host AVP validation.")
 
             checklist_mandatory_info = 0
-        
+
             process_message_logging.debug(f"flags: {avp.get_flags()}.")
             if avp.flags == FLAG_NOT_VENDOR_SPECIFIC_AND_MANDATORY_AND_NOT_PROTECTED:
                 checklist_mandatory_info += 1
-            
+
             process_message_logging.debug(f"length: {avp.get_length()}.")
             if avp.get_length() == AVP_HEADER_LENGTH + len(avp.data):
                 checklist_mandatory_info += 1

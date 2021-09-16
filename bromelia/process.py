@@ -103,7 +103,10 @@ def process_answer(association, message):
             as a result of a failover. PUT HERE code to start procedure to
             pass the connection handler to another diameter association.
             """
-            logging.warning("Answer dropped: no matching pending request (could be failover answer)")
+            if association.outofband_callback != None:
+                association.outofband_callback(message)
+            else:
+                logging.warning("Answer dropped: no matching pending request (could be failover answer)")
 
     association.postprocess_recv_answers_lock.release()
 

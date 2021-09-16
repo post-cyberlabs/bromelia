@@ -51,9 +51,10 @@ diameter_logger = logging.getLogger("Diameter")
 
 
 class DiameterAssociation(object):
-    def __init__(self, connection, base):
+    def __init__(self, connection, base, outofband_callback=None):
         self.connection = connection
         self.base = base
+        self.outofband_callback = outofband_callback
 
         self.state_is_active = False
         self.transport = None
@@ -299,13 +300,14 @@ class Diameter:
         }
 
 
-    def __init__(self, debug=False, is_logging=False, config=None):
+    def __init__(self, debug=False, is_logging=False, config=None, outofband_callback=None):
         logging.info(f">> debug: {debug}")
         logging.info(f">> is_logging: {is_logging}")
         logging.info(f">> config: {config}")
-        
+
         self.__logging = DiameterLogging(debug, is_logging)
         self.config = self.make_config(config)
+        self.outofband_callback = outofband_callback
 
         self._association = None
         self._peer_state_machine = None
@@ -342,7 +344,7 @@ class Diameter:
         self._connection = _convert_config_to_connection_obj(self.config)
         self._base = self.get_base_messages()
 
-        self._association = DiameterAssociation(self._connection, self._base)
+        self._association = DiameterAssociation(self._connection, self._base, outofband_callback=self.outofband_callback)
         self._peer_state_machine = PeerStateMachine(self._association)
 
         self._peer_state_machine.start()

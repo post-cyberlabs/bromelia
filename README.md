@@ -79,9 +79,10 @@ REMOTE_REALM = "epc.mynetwork.com"
 config = {
             "MODE": "CLIENT",
             "APPLICATIONS": [{
-                                "vendor_id": VENDOR_ID_3GPP, 
+                                "vendor_id": VENDOR_ID_3GPP,
                                 "app_id": DIAMETER_APPLICATION_S6a_S6d
             }],
+            "TRANSPORT_TYPE": "TCP",
             "LOCAL_NODE_HOSTNAME": LOCAL_HOSTNAME,
             "LOCAL_NODE_REALM": LOCAL_REALM,
             "LOCAL_NODE_IP_ADDRESS": "127.0.0.1",
@@ -138,7 +139,7 @@ from bromelia.etsi_3gpp_s6a_s6d.avps import *
 from bromelia.etsi_3gpp_s6a_s6d.messages import CancelLocationAnswer as CLA
 from bromelia.etsi_3gpp_s6a_s6d.messages import CancelLocationRequest as CLR
 
-#: Application initialization 
+#: Application initialization
 config_file = os.path.join(basedir, "bromelia_mme_config.yaml")
 
 app = Bromelia(config_file=config_file)

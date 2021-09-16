@@ -5,7 +5,7 @@
 
     This module contains an example on how to setup a dummy HSS
 	by using the Diameter class features of bromelia library.
-    
+
     :copyright: (c) 2020 Henrique Marques Ribeiro.
     :license: MIT, see LICENSE for more details.
 """
@@ -34,9 +34,10 @@ REMOTE_REALM = "epc.mynetwork.com"
 config = {
             "MODE": "SERVER",
             "APPLICATIONS": [{
-                                "vendor_id": VENDOR_ID_3GPP, 
+                                "vendor_id": VENDOR_ID_3GPP,
                                 "app_id": DIAMETER_APPLICATION_S6a_S6d
             }],
+            "TRANSPORT_TYPE": "TCP",
             "LOCAL_NODE_HOSTNAME": LOCAL_HOSTNAME,
             "LOCAL_NODE_REALM": LOCAL_REALM,
             "LOCAL_NODE_IP_ADDRESS": "127.0.0.1",
@@ -56,12 +57,12 @@ avp2 = OriginHostAVP(LOCAL_HOSTNAME)
 avp3 = OriginRealmAVP(LOCAL_REALM)
 avp4 = AuthSessionStateAVP(NO_STATE_MAINTAINED)
 avp5 = VendorSpecificApplicationIdAVP([
-                                        VendorIdAVP(VENDOR_ID_3GPP), 
+                                        VendorIdAVP(VENDOR_ID_3GPP),
                                         AuthApplicationIdAVP(DIAMETER_APPLICATION_S6a_S6d)
 ])
 avp6 = SupportedFeaturesAVP([
-                                VendorIdAVP(VENDOR_ID_3GPP), 
-                                FeatureListIdAVP(1), 
+                                VendorIdAVP(VENDOR_ID_3GPP),
+                                FeatureListIdAVP(1),
                                 FeatureListAVP(402653191)
 ])
 avp7 = DiameterAVP(code=1406, flags=192, vendor_id=10415, data=1) #: ULA-Flags AVP

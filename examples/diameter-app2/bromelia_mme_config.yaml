@@ -5,6 +5,7 @@ spec:
       - vendor_id: VENDOR_ID_3GPP
         app_id: DIAMETER_APPLICATION_S6a_S6d
     mode: Client
+    transport_type: TCP
     watchdog_timeout: 30
     local:
       ip_address: 127.0.0.1

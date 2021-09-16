@@ -29,6 +29,9 @@ FIRMWARE_VERSION = convert_to_4_bytes(1)
 DIAMETER_AGENT_CLIENT_MODE = "CLIENT"
 DIAMETER_AGENT_SERVER_MODE = "SERVER"
 
+DIAMETER_AGENT_TRANSPORT_TYPE_TCP = "TCP"
+DIAMETER_AGENT_TRANSPORT_TYPE_SCTP = "SCTP"
+
 #: *************************************************************************************************
 
 #: DIAMETER AVPS.

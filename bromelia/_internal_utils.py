@@ -50,7 +50,7 @@ def convert_to_integer_from_bytes(integer):
 def header_representation(header):
     cmd_code = header.command_code
     application_id = header.application_id
-    
+
     cmd_code_str, cmd_code_int = command_code_look_up(cmd_code)
 
     flag_representation = ""
@@ -82,7 +82,7 @@ def header_representation(header):
 def application_id_look_up(application_id):
     if not application_id:
         return "", "Unknown"
-    
+
     for application in diameter_application_ids:
         if application["id"] == convert_to_integer_from_bytes(application_id):
             return application["long_name"], application["id"]
@@ -113,22 +113,23 @@ def avp_look_up(avp):
 
 def _convert_config_to_connection_obj(config):
     LocalNode = namedtuple("LocalNode", [
-                                            "host_name", 
-                                            "realm", 
-                                            "ip_address", 
+                                            "host_name",
+                                            "realm",
+                                            "ip_address",
                                             "port"
                                         ]
     )
     PeerNode = namedtuple("PeerNode", [
-                                            "host_name", 
-                                            "realm", 
-                                            "ip_address", 
+                                            "host_name",
+                                            "realm",
+                                            "ip_address",
                                             "port"
                                         ]
     )
     Connection = namedtuple("Connection", [
-                                            "name", 
+                                            "name",
                                             "mode",
+                                            "transport_type",
                                             "local_node",
                                             "peer_node",
                                             "application_ids",
@@ -138,6 +139,7 @@ def _convert_config_to_connection_obj(config):
 
     config_mask = [
                     "MODE",
+                    "TRANSPORT_TYPE",
                     "APPLICATIONS",
                     "LOCAL_NODE_HOSTNAME",
                     "LOCAL_NODE_REALM",
@@ -162,7 +164,12 @@ def _convert_config_to_connection_obj(config):
                                 "either 'CLIENT' or 'SERVER'")
 
             mode = value
-
+        elif key == "TRANSPORT_TYPE":
+            if value not in ["TCP", "SCTP"]:
+                raise InvalidConfigValue("Invalid config value '{value}' "\
+                                f"found for config key '{key}'. It MUST be "\
+                                "either 'TCP' or 'SCTP'")
+            transport_type = value
         elif key == "APPLICATIONS":
             if value:
                 for app in value:
@@ -240,6 +247,7 @@ def _convert_config_to_connection_obj(config):
 
     connection = Connection(name="bromelia",
                             mode=mode,
+                            transport_type=transport_type,
                             application_ids=application_ids,
                             local_node=local_node,
                             peer_node=peer_node,
@@ -275,6 +283,7 @@ def _convert_file_to_config(filepath=None, variables_dictionary=globals()):
 
         configs.append({
                             "MODE": spec["mode"].upper(),
+                            "TRANSPORT_TYPE": spec["transport_type"].upper(),
                             "APPLICATIONS": spec["applications"],
                             "LOCAL_NODE_HOSTNAME": spec["local"]["hostname"],
                             "LOCAL_NODE_REALM": spec["local"]["realm"],

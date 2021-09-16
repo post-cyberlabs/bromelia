@@ -5,7 +5,7 @@
 
     This module contains an example on how to setup a dummy MME
 	by using the Diameter class features of bromelia library.
-    
+
     :copyright: (c) 2020 Henrique Marques Ribeiro.
     :license: MIT, see LICENSE for more details.
 """
@@ -34,9 +34,10 @@ REMOTE_REALM = "epc.mynetwork.com"
 config = {
             "MODE": "CLIENT",
             "APPLICATIONS": [{
-                                "vendor_id": VENDOR_ID_3GPP, 
+                                "vendor_id": VENDOR_ID_3GPP,
                                 "app_id": DIAMETER_APPLICATION_S6a_S6d
             }],
+            "TRANPORT_TYPE": "TCP",
             "LOCAL_NODE_HOSTNAME": LOCAL_HOSTNAME,
             "LOCAL_NODE_REALM": LOCAL_REALM,
             "LOCAL_NODE_IP_ADDRESS": "127.0.0.1",

@@ -1736,7 +1736,8 @@ class DiameterRequest(DiameterMessage):
                  command_code: Any = 0,
                  application_id: Any = 0,
                  header: DiameterHeader = None,
-                 avps: List[DiameterAVP] = None) -> None:
+                 avps: List[DiameterAVP] = None,
+                 loaded: bool = False) -> None:
 
         if header:
             _header = DiameterHeader(version=header.version,
@@ -1754,7 +1755,7 @@ class DiameterRequest(DiameterMessage):
                                      hop_by_hop=hop_by_hop, 
                                      end_to_end=end_to_end)
 
-        DiameterMessage.__init__(self, _header, avps)
+        DiameterMessage.__init__(self, _header, avps, loaded=loaded)
         DiameterMessage.set_flag_by_app_id(self, application_id)        
 
 
@@ -1774,6 +1775,32 @@ class DiameterRequest(DiameterMessage):
             if random_identifier not in DiameterRequest.end_to_end_identifiers:
                 DiameterRequest.end_to_end_identifiers.append(random_identifier)
                 return random_identifier
+
+
+    @staticmethod
+    def load(stream: bytes) -> list:
+        """Load a byte stream which represents Diameter Message and returns a 
+        list of DiameterMessage objects.
+        """
+        msgs = []
+        index = 0
+
+        while index < len(stream):
+            header_stream = stream[index:index+DIAMETER_HEADER_LENGTH]
+            header = DiameterHeader.load(header_stream)
+
+            lower_limit = index + DIAMETER_HEADER_LENGTH
+            upper_limit = index + header.get_length()
+
+            avp_stream = stream[lower_limit:upper_limit]
+            avps = DiameterAVP.load(avp_stream)
+
+            msg = DiameterRequest(header=header, avps=avps, loaded=True)
+            msgs.append(msg)
+
+            index += header.get_length()
+
+        return msgs
 
 
     @staticmethod
@@ -1809,7 +1836,8 @@ class DiameterAnswer(DiameterMessage):
                  command_code: Any = 0,
                  application_id: Any = 0,
                  header: DiameterHeader = None,
-                 avps: List[DiameterAVP] = None) -> None:
+                 avps: List[DiameterAVP] = None,
+                 loaded: bool = False) -> None:
 
         if header:
             _header = DiameterHeader(version=header.version,
@@ -1822,8 +1850,34 @@ class DiameterAnswer(DiameterMessage):
                                      command_code=command_code, 
                                      application_id=application_id)
 
-        DiameterMessage.__init__(self, _header, avps)
+        DiameterMessage.__init__(self, _header, avps, loaded=loaded)
         DiameterMessage.set_flag_by_app_id(self, application_id)
+
+
+    @staticmethod
+    def load(stream: bytes) -> list:
+        """Load a byte stream which represents Diameter Message and returns a 
+        list of DiameterMessage objects.
+        """
+        msgs = []
+        index = 0
+
+        while index < len(stream):
+            header_stream = stream[index:index+DIAMETER_HEADER_LENGTH]
+            header = DiameterHeader.load(header_stream)
+
+            lower_limit = index + DIAMETER_HEADER_LENGTH
+            upper_limit = index + header.get_length()
+
+            avp_stream = stream[lower_limit:upper_limit]
+            avps = DiameterAVP.load(avp_stream)
+
+            msg = DiameterAnswer(header=header, avps=avps, loaded=True)
+            msgs.append(msg)
+
+            index += header.get_length()
+
+        return msgs
 
 
     @staticmethod

@@ -27,6 +27,7 @@ from ...avps.etsi_3gpp.ts_129_272 import AirFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import NorFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import PurFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import PuaFlagsAVP
+from ...avps.etsi_3gpp.ts_129_272 import DsrFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import AlertReasonAVP
 from ...avps.etsi_3gpp.ts_129_272 import ErrorDiagnosticAVP
 from ...avps.etsi_3gpp.ts_129_272 import VisitedPlmnIdAVP
@@ -38,6 +39,8 @@ from ...avps.etsi_3gpp.ts_129_272 import CancellationTypeAVP
 from ...avps.etsi_3gpp.ts_129_272 import ClrFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import IdrFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import UserIdAVP
+
+from ...avps.etsi_3gpp.ts_129_336 import ScefIdAVP
 
 from ...avps.ietf.rfc5447 import Mip6AgentInfoAVP
 

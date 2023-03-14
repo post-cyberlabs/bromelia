@@ -651,9 +651,9 @@ class UlrFlagsAVP(DiameterAVP, Unsigned32Type):
 
 class IdrFlagsAVP(DiameterAVP, Unsigned32Type):
     """Implementation of IDR-Flags AVP in Section 7.3.103 of 
-    ETSI TS 129 272 V15.08.0 (2019-07).
+    ETSI TS 129 272 V15.8.0 (2019-07).
 
-    The IDR-Flags AVP (AVP Code 1405) is of type Unsigned32.
+    The IDR-Flags AVP (AVP Code 1490) is of type Unsigned32.
     """
     code = IDR_FLAGS_AVP_CODE
     vendor_id = VENDOR_ID_3GPP
@@ -662,6 +662,24 @@ class IdrFlagsAVP(DiameterAVP, Unsigned32Type):
         DiameterAVP.__init__(self, 
                              IdrFlagsAVP.code,
                              IdrFlagsAVP.vendor_id)
+        DiameterAVP.set_mandatory_bit(self, True)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        Unsigned32Type.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class DsrFlagsAVP(DiameterAVP, Unsigned32Type):
+    """Implementation of DSR-Flags AVP in Section 7.3.25 of 
+    ETSI TS 129 272 V15.08.0 (2019-07).
+
+    The DSR-Flags AVP (AVP Code 1421) is of type Unsigned32.
+    """
+    code = DSR_FLAGS_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self, 
+                             DsrFlagsAVP.code,
+                             DsrFlagsAVP.vendor_id)
         DiameterAVP.set_mandatory_bit(self, True)
         DiameterAVP.set_vendor_id_bit(self, True)
         Unsigned32Type.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
@@ -1099,3 +1117,38 @@ class ClrFlagsAVP(DiameterAVP, Unsigned32Type):
                              ClrFlagsAVP.vendor_id)
         DiameterAVP.set_vendor_id_bit(self, True)
         Unsigned32Type.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class GmlcNumberAVP(DiameterAVP, OctetStringType):
+    """Implementation of GMLC-Number AVP in Section 7.3.85 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The GMLC-Number AVP (AVP Code 1474) is of type OctetString.
+    """
+    code = GMLC_NUMBER_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self, 
+                             GmlcNumberAVP.code,
+                             GmlcNumberAVP.vendor_id)
+        DiameterAVP.set_mandatory_bit(self, True)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        OctetStringType.__init__(self, data=self.encode(data), vendor_id=VENDOR_ID_3GPP)
+
+
+    def encode(self, data):
+        if isinstance(data, int):
+            return bytes.fromhex(encode_to_tbcd(data))
+
+        elif isinstance(data, str):
+            return bytes.fromhex(encode_to_tbcd(int(data)))
+
+        elif isinstance(data, bytes):
+            return data
+
+
+    def decode(self):
+        return decode_from_tbcd(self.data)
+
+

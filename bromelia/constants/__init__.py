@@ -18,6 +18,9 @@ from .etsi_3gpp.ts_129_272 import *
 from .etsi_3gpp.ts_129_273 import *
 from .etsi_3gpp.ts_129_329 import *
 from .etsi_3gpp.ts_183_017 import *
+from .etsi_3gpp.ts_129_172 import *
+from .etsi_3gpp.ts_129_173 import *
+from .etsi_3gpp.ts_132_299 import *
 
 from .ietf.rfc4006 import *
 from .ietf.rfc4072 import *

@@ -305,6 +305,7 @@ class ProcessCapabilityExchange():
         self.message = message
 
         self.checklist_mandatory_avps = 0
+        self.checklist_ip_address_avp = False
         self.checklist_optional_avps = 0
         self.checklist_error_avps = 0
         self.is_valid = False
@@ -356,7 +357,9 @@ class ProcessCapabilityExchange():
                 self.checklist_mandatory_avps += 1
 
             elif ProcessDiameterMessage.is_valid_host_ip_address_avp(avp, self.connection):
-                self.checklist_mandatory_avps += 1
+                if not self.checklist_ip_address_avp:
+                    self.checklist_ip_address_avp = True
+                    self.checklist_mandatory_avps += 1
 
             elif ProcessDiameterMessage.is_valid_vendor_id_avp(avp, self.connection):
                 self.checklist_mandatory_avps += 1

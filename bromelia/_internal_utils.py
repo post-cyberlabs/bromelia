@@ -213,14 +213,22 @@ def _convert_config_to_connection_obj(config):
         elif key == "PEER_NODE_REALM":
             peer_node_realm = value
         elif key == "PEER_NODE_IP_ADDRESS":
+            peer_node_ip_address = None
             try:
                 ipaddress.IPv4Address(value)
                 peer_node_ip_address = value
-
             except ipaddress.AddressValueError:
+                try:
+                    for ipvalue in socket.getaddrinfo(value,None):
+                        if ipvalue[0] == socket.AddressFamily.AF_INET:
+                            peer_node_ip_address = ipvalue[4][0]
+                            break
+                except Exception:
+                    pass
+            if peer_node_ip_address is None:        
                 raise InvalidConfigValue(f"Invalid config value '{value}' "\
                                 f"found for config key '{key}'. It MUST "\
-                                 "correspond to a valid IPv4 address format")
+                                 "correspond to a valid Hostname or IPv4 address format")
 
         elif key == "PEER_NODE_PORT":
             peer_node_port = value

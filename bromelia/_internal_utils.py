@@ -16,6 +16,7 @@ import re
 import os
 import struct
 import yaml
+import socket
 from collections import namedtuple
 
 from .definitions import diameter_application_ids

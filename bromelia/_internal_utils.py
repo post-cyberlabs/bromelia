@@ -227,7 +227,7 @@ def _convert_config_to_connection_obj(config) -> Connection:
             peer_node_realm = value
         elif key == "PEER_NODE_IP_ADDRESS":
             try:
-                ipaddress.IPv4Address(value)
+                #ipaddress.IPv4Address(value)
                 peer_node_ip_address = value
 
             except ipaddress.AddressValueError:

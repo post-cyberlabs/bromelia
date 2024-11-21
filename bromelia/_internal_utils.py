@@ -209,7 +209,7 @@ def _convert_config_to_connection_obj(config) -> Connection:
             local_node_realm = value
         elif key == "LOCAL_NODE_IP_ADDRESS":
             try:
-                ipaddress.IPv4Address(value)
+                #ipaddress.IPv4Address(value)
                 local_node_ip_address = value
 
             except ipaddress.AddressValueError:

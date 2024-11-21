@@ -208,14 +208,22 @@ def _convert_config_to_connection_obj(config) -> Connection:
         elif key == "LOCAL_NODE_REALM":
             local_node_realm = value
         elif key == "LOCAL_NODE_IP_ADDRESS":
+            local_node_ip_address = None
             try:
-                #ipaddress.IPv4Address(value)
+                ipaddress.IPv4Address(value)
                 local_node_ip_address = value
-
             except ipaddress.AddressValueError:
+                try:
+                    for ipvalue in socket.getaddrinfo(value,None):
+                        if ipvalue[0] == socket.AddressFamily.AF_INET:
+                            local_node_ip_address = ipvalue[4][0]
+                            break
+                except Exception:
+                    pass
+            if local_node_ip_address is None:        
                 raise InvalidConfigValue(f"Invalid config value '{value}' "\
                                          f"found for config key '{key}'. It "\
-                                         f"MUST correspond to a valid IPv4 "\
+                                         f"MUST correspond to a valid Hostname or IPv4 "\
                                          f"address format")
 
         elif key == "LOCAL_NODE_PORT":
@@ -226,14 +234,22 @@ def _convert_config_to_connection_obj(config) -> Connection:
         elif key == "PEER_NODE_REALM":
             peer_node_realm = value
         elif key == "PEER_NODE_IP_ADDRESS":
+            peer_node_ip_address = None
             try:
-                #ipaddress.IPv4Address(value)
+                ipaddress.IPv4Address(value)
                 peer_node_ip_address = value
-
             except ipaddress.AddressValueError:
+                try:
+                    for ipvalue in socket.getaddrinfo(value,None):
+                        if ipvalue[0] == socket.AddressFamily.AF_INET:
+                            peer_node_ip_address = ipvalue[4][0]
+                            break
+                except Exception:
+                    pass
+            if peer_node_ip_address is None:        
                 raise InvalidConfigValue(f"Invalid config value '{value}' "\
                                          f"found for config key '{key}'. It "\
-                                         f"MUST correspond to a valid IPv4 "\
+                                         f"MUST correspond to a valid Hostname or IPv4 "\
                                          f"address format")
 
         elif key == "PEER_NODE_PORT":

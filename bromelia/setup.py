@@ -308,12 +308,18 @@ class DiameterAssociation(object):
         return msg
 
 
-    def get_message(self) -> Type[DiameterMessage]:
+    def get_message(self, timeout: int=None) -> Type[DiameterMessage]:
         while not self._stop_threads:
             if self.postprocess_recv_messages.empty():
-                self.postprocess_recv_messages_ready.wait()
-                diameter_conn_logger.debug("Got go ahead for "\
+                success = self.postprocess_recv_messages_ready.wait(timeout)
+                if success:
+                    diameter_conn_logger.debug("Got go ahead for "\
                                            "postprocess_recv_messages_ready")
+                else:
+                    diameter_conn_logger.debug("Stop processing message "\
+                                           "as timeout %d has been reached" % timeout)
+                    return None
+
             else:
                 diameter_conn_logger.debug("No need to wait for go ahead for "\
                                            "postprocess_recv_messages_ready")
@@ -486,9 +492,8 @@ class Diameter:
                                            "allowed to be sent")
 
 
-    def get_message(self) -> Type[DiameterMessage]:
-        return self._association.get_message()
-
+    def get_message(self, timeout: int=None) -> Type[DiameterMessage]:
+        return self._association.get_message(timeout)
 
     @contextmanager
     def context(self) -> None:

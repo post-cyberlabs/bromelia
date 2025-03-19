@@ -321,6 +321,7 @@ class TcpClient(TcpConnection):
 
 
     def start(self) -> None:
+        self.lock.acquire()
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tcp_client.debug(f"[{self.dbgkey} Socket-{self.sock_id}] Client-side Socket: "\
@@ -338,8 +339,10 @@ class TcpClient(TcpConnection):
             self.selector.register(self.sock, selectors.EVENT_READ | selectors.EVENT_WRITE)
             tcp_client.debug(f"[{self.dbgkey} Socket-{self.sock_id}] Registering Socket "\
                              f"Selector address: {self.selector.get_map()}")
+            self.lock.release()
         except Exception as e:
             tcp_client.exception(f"{self.dbgkey} client_errors: {e.args}")
+            self.lock.release()
 
 
 class SctpClient(TcpClient,SctpConnection):

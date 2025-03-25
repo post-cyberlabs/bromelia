@@ -28,6 +28,7 @@ from ...avps.etsi_3gpp.ts_129_272 import NorFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import PurFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import PuaFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import DsrFlagsAVP
+from ...avps.etsi_3gpp.ts_129_272 import DsaFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import AlertReasonAVP
 from ...avps.etsi_3gpp.ts_129_272 import ErrorDiagnosticAVP
 from ...avps.etsi_3gpp.ts_129_272 import VisitedPlmnIdAVP

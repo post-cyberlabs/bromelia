@@ -689,7 +689,7 @@ DAYLIGHT_SAVING_TIME_NO_ADJUSTMENT = convert_to_4_bytes(0)
 DAYLIGHT_SAVING_TIME_PLUS_ONE_HOUR_ADJUSTMENT = convert_to_4_bytes(1)
 DAYLIGHT_SAVING_TIME_PLUS_TWO_HOURS_ADJUSTMENT = convert_to_4_bytes(2)
 
-
+DSA_FLAGS_AVP_CODE = convert_to_4_bytes(1422)
 USER_STATE_AVP_CODE = convert_to_4_bytes(1499)
 IMS_VOICE_OVER_PS_SESSIONS_SUPPORTED = convert_to_4_bytes(1492)
 SGSN_USER_STATE_AVP_CODE = convert_to_4_bytes(1601)
@@ -775,6 +775,24 @@ class DsrFlagsAVP(DiameterAVP, Unsigned32Type):
         DiameterAVP.__init__(self, 
                              DsrFlagsAVP.code,
                              DsrFlagsAVP.vendor_id)
+        DiameterAVP.set_mandatory_bit(self, True)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        Unsigned32Type.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class DsaFlagsAVP(DiameterAVP, Unsigned32Type):
+    """Implementation of DSA-Flags AVP in Section 7.3.26 of 
+    ETSI TS 129 272 V15.08.0 (2019-07).
+
+    The DSA-Flags AVP (AVP Code 1422) is of type Unsigned32.
+    """
+    code = DSA_FLAGS_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self, 
+                             DsaFlagsAVP.code,
+                             DsaFlagsAVP.vendor_id)
         DiameterAVP.set_mandatory_bit(self, True)
         DiameterAVP.set_vendor_id_bit(self, True)
         Unsigned32Type.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)

@@ -948,17 +948,18 @@ class InsertSubscriberDataAnswer(DiameterAnswer):
                  vendor_specific_application_id=[VendorIdAVP(VENDOR_ID_3GPP), AuthApplicationIdAVP(DIAMETER_APPLICATION_S6a_S6d)],
                  result_code=None,
                  experimental_result=None,
-                 error_diagnostic=None,
+                 ims_voice_over_ps_sessions_supported=None,
+                 last_ue_activity_time=None,
+                 rat_type=None,
+                 eps_user_state=None,
+                 eps_location_information=None,
+                 local_time_zone=None,
+                 supported_services=None,
                  auth_session_state=NO_STATE_MAINTAINED,
                  origin_host=platform.node(), 
                  origin_realm=socket.getfqdn(), 
-                 oc_supported_features=None,
-                 oc_olr=None,
-                 load=None,
                  supported_features=None,
-                 ula_flags=None,
-                 subscription_data=None,
-                 reset_id=None,
+                 ida_flags=None,
                  failed_avp=None,
                  proxy_info=None,
                  route_record=None,
@@ -978,14 +979,12 @@ class DeleteSubscriberDataRequest(DiameterRequest):
 
     Usage::
 
-        >>> from bromelia.lib.etsi_3gpp_s6a import IDR
-        >>> ulr_avps = {
+        >>> from bromelia.lib.etsi_3gpp_s6a import DSR
+        >>> dsr_avps = {
         ...     "destination_realm": "example.com",
-        ...     "user_name": "frodo",
-        ...     "visited_plmn_id": bytes.fromhex("ffffff")
         ... }
-        >>> idr = IDR(**idr_avps)
-        >>> idr
+        >>> dsr = DSR(**dsr_avps)
+        >>> dsr
         <Diameter Message: 316 [ULR] REQ|PXY, 16777251 [3GPP S6a], 10 AVP(s)>
     """    
 
@@ -997,39 +996,37 @@ class DeleteSubscriberDataRequest(DiameterRequest):
                     "destination_realm": DestinationRealmAVP,
                     "user_name": UserNameAVP,
                     "dsr_flags": DsrFlagsAVP,
-                    "scef_id": ScefIdAVP,
     }
 
     optionals = {
-                    "destination_host": DestinationHostAVP,
-
+                    "destination_host": DestinationHostAVP, # make it optional for TSS needs
                     #"drmp": DrmpAVP,
-                    #"vendor_specific_application_id": VendorSpecificApplicationIdAVP,
-                    #"supported_features": SupportedFeaturesAVP,
-                    #"terminal_information": TerminalInformationAVP,
-                    #"proxy_info": ProxyInfoAVP,
-                    #"reset_id": ResetIdAVP,
-                    #"route_record": RouteRecordAVP,
+                    "vendor_specific_application_id": VendorSpecificApplicationIdAVP,
+                    "supported_features": SupportedFeaturesAVP,
+                    "scef_id": ScefIdAVP,
+                    # context_identifier
                     #trace reference
                     #TS-Code
-                    #SS-Cod
+                    #SS-Code
+                    "proxy_info": ProxyInfoAVP,
+                    "route_record": RouteRecordAVP,
     }
 
     def __init__(self, 
                  session_id=platform.node(), 
                  #drmp=None,
-                 #vendor_specific_application_id=[VendorIdAVP(VENDOR_ID_3GPP), AuthApplicationIdAVP(DIAMETER_APPLICATION_S6a_S6d)],
+                 vendor_specific_application_id=[VendorIdAVP(VENDOR_ID_3GPP), AuthApplicationIdAVP(DIAMETER_APPLICATION_S6a_S6d)],
                  auth_session_state=NO_STATE_MAINTAINED,
                  origin_host=platform.node(), 
                  origin_realm=socket.getfqdn(), 
                  destination_host=None,
                  destination_realm=None,
                  user_name=None,
-                 #supported_features=None,
-                 #terminal_information=None,
+                 supported_features=None,
+                 scef_id=None,
                  dsr_flags=0,
-                 #proxy_info=None,
-                 #route_record=None,
+                 proxy_info=None,
+                 route_record=None,
                  **kwargs):
 
         DiameterRequest.__init__(self, 
@@ -1037,5 +1034,61 @@ class DeleteSubscriberDataRequest(DiameterRequest):
                                  application_id=DIAMETER_APPLICATION_S6a_S6d)
 
         DiameterRequest._load(self, locals())
-    
-        
+
+
+class DeleteSubscriberDataAnswer(DiameterAnswer):
+    """Implementation of Delete-Subscriber-Data-Answer DSA) command as per 
+    clause 7.2.12 of ETSI TS 129 272 V15.4.0 (2018-07).
+
+    The Delete-Subscriber-Data-Answer is indicated by the Command Code field
+    set to 320 and Command Flag's 'R' bit cleared.
+
+    Usage::
+
+        >>> from bromelia.lib.etsi_3gpp_s6a import IDA
+        >>> dsa = DSA()
+        >>> dsa
+        <Diameter Message: 319 [DSA] PXY, 16777251 [3GPP S6a], 5 AVP(s)>
+    """
+
+    mandatory = {
+                    "session_id": SessionIdAVP,
+                    "auth_session_state": AuthSessionStateAVP,
+                    "origin_host": OriginHostAVP,
+                    "origin_realm": OriginRealmAVP,
+    }
+
+    optionals = { 
+                    # "drmp": DrmpAVP,
+                    "vendor_specific_application_id": VendorSpecificApplicationIdAVP,
+                    "supported_features": SupportedFeaturesAVP,
+                    "result_code": ResultCodeAVP,
+                    "experimental_result": ExperimentalResultAVP,
+                    "dsa_flags": DsaFlagsAVP,
+                    "failed_avp": FailedAvpAVP,
+                    "proxy_info": ProxyInfoAVP,
+                    "route_record": RouteRecordAVP,
+    }
+
+    def __init__(self,
+                 session_id=platform.node(),
+                 #drmp=None,
+                 vendor_specific_application_id=[VendorIdAVP(VENDOR_ID_3GPP), AuthApplicationIdAVP(DIAMETER_APPLICATION_S6a_S6d)],
+                 result_code=None,
+                 experimental_result=None,
+                 auth_session_state=NO_STATE_MAINTAINED,
+                 origin_host=platform.node(), 
+                 origin_realm=socket.getfqdn(), 
+                 supported_features=None,
+                 dsa_flags=None,
+                 failed_avp=None,
+                 proxy_info=None,
+                 route_record=None,
+                 **kwargs):
+
+        DiameterAnswer.__init__(self, 
+                                command_code=DELETE_SUBSCRIBER_DATA_MESSAGE, 
+                                application_id=DIAMETER_APPLICATION_S6a_S6d)
+
+        DiameterAnswer._load(self, locals())
+

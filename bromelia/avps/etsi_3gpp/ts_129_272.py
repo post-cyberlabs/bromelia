@@ -31,6 +31,8 @@ from ...exceptions import AVPAttributeValueError
 from ...types import *
 from ...utils import decode_from_tbcd, encode_to_tbcd
 
+import datetime
+import struct
 
 class StnSrAVP(DiameterAVP, OctetStringType):
     """Implementation of STN-SR AVP in Section 7.3.39 of 
@@ -667,6 +669,99 @@ class IdrFlagsAVP(DiameterAVP, Unsigned32Type):
         Unsigned32Type.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
 
 
+################
+### ISD AVPs ###
+################
+#: List of User-State AVP values.
+#: For more information, please refer to Section 7.3.114 of
+#: ETSI TS 129 272 V15.4.0 (2018-07)
+USER_STATE_DETACHED = convert_to_4_bytes(0)
+USER_STATE_ATTACHED_NOT_REACHABLE_FOR_PAGING = convert_to_4_bytes(1)
+USER_STATE_ATTACHED_REACHABLE_FOR_PAGING = convert_to_4_bytes(2)
+USER_STATE_CONNECTED_NOT_REACHABLE_FOR_PAGING = convert_to_4_bytes(3)
+USER_STATE_CONNECTED_REACHABLE_FOR_PAGING = convert_to_4_bytes(4)
+USER_STATE_RESERVED = convert_to_4_bytes(5)
+
+#: List of Daylight-Saving-Time AVP values.
+#: For more information, please refer to Section 7.3.164 of
+#: ETSI TS 129 272 V15.4.0 (2018-07)
+DAYLIGHT_SAVING_TIME_NO_ADJUSTMENT = convert_to_4_bytes(0)
+DAYLIGHT_SAVING_TIME_PLUS_ONE_HOUR_ADJUSTMENT = convert_to_4_bytes(1)
+DAYLIGHT_SAVING_TIME_PLUS_TWO_HOURS_ADJUSTMENT = convert_to_4_bytes(2)
+
+
+USER_STATE_AVP_CODE = convert_to_4_bytes(1499)
+IMS_VOICE_OVER_PS_SESSIONS_SUPPORTED = convert_to_4_bytes(1492)
+SGSN_USER_STATE_AVP_CODE = convert_to_4_bytes(1601)
+MME_USER_STATE_AVP_CODE = convert_to_4_bytes(1497)
+EPS_USER_STATE_AVP_CODE = convert_to_4_bytes(1495)
+LAST_UE_ACTIVITY_TIME_AVP_CODE = convert_to_4_bytes(1494)
+EPS_LOCATION_INFORMATION_AVP_CODE = convert_to_4_bytes(1496)
+IDA_FLAGS_AVP_CODE = convert_to_4_bytes(1441)
+SGSN_LOCATION_INFORMATION_AVP_CODE = convert_to_4_bytes(1601)
+MME_LOCATION_INFORMATION_AVP_CODE = convert_to_4_bytes(1600)
+AGE_OF_LOCATION_INFORMATION_AVP_CODE = convert_to_4_bytes(1611)
+EUTRAN_CELL_GLOBAL_IDENTITY_AVP_CODE = convert_to_4_bytes(1602)
+TRACKING_AREA_IDENTITY_AVP_CODE = convert_to_4_bytes(1603)
+CELL_GLOBAL_IDENTITY_AVP_CODE = convert_to_4_bytes(1604)
+LOCATION_AREA_IDENTITY_AVP_CODE = convert_to_4_bytes(1606)
+SERVICE_AREA_IDENTITY_AVP_CODE = convert_to_4_bytes(1607)
+ROUTING_AREA_IDENTITY_AVP_CODE = convert_to_4_bytes(1605)
+TIME_ZONE_AVP_CODE = convert_to_4_bytes(1642)
+DAYLIGHT_SAVING_TIME_AVP_CODE = convert_to_4_bytes(1650)
+LOCAL_TIME_ZONE_AVP_CODE = convert_to_4_bytes(1649)
+
+
+def convert_from_4_bytes(content: bytes) -> int:
+    return struct.unpack(">L", content)[0]
+
+
+from typing import Any
+class CellIdentityType(OctetStringType):
+
+    @abc.abstractmethod
+    def __init__(self, data, vendor_id=None):
+        OctetStringType.__init__(self, data, vendor_id)
+
+    def decode_tbcd(self, chars: bytes) -> str:
+        
+        number=''
+
+        for char in chars:
+            for val in (char & 0xF, char >> 4):
+                if val != 0xF:
+                    number += str(val) 
+
+        return number
+    
+    def decode_mncmcc(self) -> tuple[str,str]:
+        vals = self.decode_tbcd(self.data[0:3])
+        return vals[0:3], vals[3:]
+
+
+    def decode(self) -> tuple[str,str,Any]:
+        vals = self.decode_mncmcc()
+        return vals[0], vals[1], self.decode_tbcd(self.data[3:])
+
+
+class IdaFlagsAVP(DiameterAVP, Unsigned32Type):
+    """Implementation of IDA-Flags AVP in Section 7.3.47 of 
+    ETSI TS 129 272 V15.8.0 (2019-07).
+
+    The IDA-Flags AVP (AVP Code 1441) is of type Unsigned32.
+    """
+    code = IDA_FLAGS_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self, 
+                             IdaFlagsAVP.code,
+                             IdaFlagsAVP.vendor_id)
+        DiameterAVP.set_mandatory_bit(self, True)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        Unsigned32Type.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
 class DsrFlagsAVP(DiameterAVP, Unsigned32Type):
     """Implementation of DSR-Flags AVP in Section 7.3.25 of 
     ETSI TS 129 272 V15.08.0 (2019-07).
@@ -1151,4 +1246,412 @@ class GmlcNumberAVP(DiameterAVP, OctetStringType):
     def decode(self):
         return decode_from_tbcd(self.data)
 
+
+class ImsVoiceOverPsSessionsSupportedAVP(DiameterAVP, EnumeratedType):
+    """Implementation of IMS-Voice-Over-PS-Sessions-Supported AVP in Section 7.3.106 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The IMS-Voice-Over-PS-Sessions-Supported AVP (AVP Code 1492) is of type Enumerated.
+    """
+    code = IMS_VOICE_OVER_PS_SESSIONS_SUPPORTED
+    vendor_id = VENDOR_ID_3GPP
+
+    values = [
+            IMS_VOICE_OVER_PS_NOT_SUPPORTED,
+            IMS_VOICE_OVER_PS_SUPPORTED,
+    ]
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             ImsVoiceOverPsSessionsSupportedAVP.code,
+                             ImsVoiceOverPsSessionsSupportedAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        EnumeratedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class LastUeActivityTimeAVP(DiameterAVP, TimeType):
+    """Implementation of Last-UE-Activity-Time AVP in Section 7.3.108 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The Last-UE-Activity-Time AVP (AVP Code 1494) is of type Time.
+    """
+    code = LAST_UE_ACTIVITY_TIME_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             LastUeActivityTimeAVP.code,
+                             LastUeActivityTimeAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        TimeType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+    def decode(self):
+        ref1900 = datetime.datetime(1900, 1, 1, 0, 0, 0)
+        timestamp1900 = convert_from_4_bytes(self.data)
+        timestamp = ref1900 + datetime.timedelta(seconds=timestamp1900)
+        return timestamp
+
+
+class UserStateAVP(DiameterAVP, EnumeratedType):
+    """Implementation of User-State AVP in Section 7.3.114 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The User-State AVP (AVP Code 1499) is of type Enumerated.
+    """
+    code = USER_STATE_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    values = [
+        USER_STATE_DETACHED,
+        USER_STATE_ATTACHED_NOT_REACHABLE_FOR_PAGING,
+        USER_STATE_ATTACHED_REACHABLE_FOR_PAGING,
+        USER_STATE_CONNECTED_NOT_REACHABLE_FOR_PAGING,
+        USER_STATE_CONNECTED_REACHABLE_FOR_PAGING,
+        USER_STATE_RESERVED,
+    ]
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             UserStateAVP.code,
+                             UserStateAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        EnumeratedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class MmeUserStateAVP(DiameterAVP, GroupedType):
+    """Implementation of MME-User-State AVP in Section 7.3.112 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The MME-User-State AVP (AVP Code 1497) is of type Grouped.
+    """
+    code = MME_USER_STATE_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    mandatory = {
+                    "user_state": UserStateAVP,
+    }
+    optionals: dict[str,DiameterAVP]  = {}
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             MmeUserStateAVP.code,
+                             MmeUserStateAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        GroupedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class SgsnUserStateAVP(DiameterAVP, GroupedType):
+    """Implementation of SGSN-User-State AVP in Section 7.3.113 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The SGSN-User-State AVP (AVP Code 1601) is of type Grouped.
+    """
+    code = SGSN_USER_STATE_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    mandatory = {
+                    "user_state": UserStateAVP,
+    }
+    optionals: dict[str,DiameterAVP]  = {}
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             SgsnUserStateAVP.code,
+                             SgsnUserStateAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        GroupedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class EpsUserStateAVP(DiameterAVP, GroupedType):
+    """Implementation of EPS-User-State AVP in Section 7.3.110 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The EPS-User-State AVP (AVP Code 1495) is of type Grouped.
+    """
+    code = EPS_USER_STATE_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    mandatory: dict[str,DiameterAVP]  = {}
+    optionals = {
+        "mme_user_state": MmeUserStateAVP,
+        "sgsn_user_state": SgsnUserStateAVP,
+    }
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             EpsUserStateAVP.code,
+                             EpsUserStateAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        GroupedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class CellGlobalIdentityAVP(DiameterAVP, CellIdentityType):
+    """Implementation of Cell-Global-Identity AVP in Section 7.3.119 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The E-UTRAN-Cell-Global-Identity AVP (AVP Code 1604) is of type OctetString.
+    """
+    code = CELL_GLOBAL_IDENTITY_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             CellGlobalIdentityAVP.code,
+                             CellGlobalIdentityAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class TrackingAreaIdentityAVP(DiameterAVP, CellIdentityType):
+    """Implementation Tracking-Area-Identity AVP in Section 7.3.118 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The Tracking-Area-Identity AVP (AVP Code 1603) is of type OctetString.
+    """
+    
+    """Section 7.3.118"""
+    code = TRACKING_AREA_IDENTITY_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             TrackingAreaIdentityAVP.code,
+                             TrackingAreaIdentityAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class EUtranCellGlobalIdentityAVP(DiameterAVP, CellIdentityType):
+    """Implementation of E-UTRAN-Cell-Global-Identity AVP in Section 7.3.117 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The E-UTRAN-Cell-Global-Identity AVP (AVP Code 1602) is of type OctetString.
+    """
+    code = EUTRAN_CELL_GLOBAL_IDENTITY_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             EUtranCellGlobalIdentityAVP.code,
+                             EUtranCellGlobalIdentityAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+    def decode(self) -> tuple[str,str,str,str]:
+        vals = self.decode_mncmcc()
+        return vals[0], vals[1], self.decode_tbcd(self.data[3:5]), self.decode_tbcd(self.data[5:])
+
+
+class AgeOfLocationInformationAVP(DiameterAVP, Unsigned32Type):
+    """Implementation of Age-Of-Location-Information AVP in Section 7.3.126 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The MME-Location-Information AVP (AVP Code 1611) is of type Unsigned32.
+    """
+    code = AGE_OF_LOCATION_INFORMATION_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             AgeOfLocationInformationAVP.code,
+                             AgeOfLocationInformationAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        Unsigned32Type.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+    def decode(self) -> int:
+        intval = convert_from_4_bytes(self.data)
+        return intval
+
+
+class MmeLocationInformationAVP(DiameterAVP, GroupedType):
+    """Implementation of MME-Location-Information AVP in Section 7.3.115 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The MME-Location-Information AVP (AVP Code 1600) is of type Grouped.
+    """
+    code = MME_LOCATION_INFORMATION_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+    
+    mandatory = {
+            "e_utran_cell_global_identity": EUtranCellGlobalIdentityAVP,
+            "tracking_area_identity": TrackingAreaIdentityAVP,
+            "age_of_location_information": AgeOfLocationInformationAVP,
+    }
+    optionals: dict[str,DiameterAVP]  = {}
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             MmeLocationInformationAVP.code,
+                             MmeLocationInformationAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        GroupedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class LocationAreaIdentityAVP(DiameterAVP, CellIdentityType):
+    """Implementation of Location-Area-Identity AVP in Section 7.3.121 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The Location-Area-Identity AVP (AVP Code 1606) is of type OctetString.
+    """
+    code = LOCATION_AREA_IDENTITY_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+    
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             LocationAreaIdentityAVP.code,
+                             LocationAreaIdentityAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class ServiceAreaIdentityAVP(DiameterAVP, CellIdentityType):
+    """Implementation of Service-Area-Identity AVP in Section 7.3.122 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The Service-Area-Identity AVP (AVP Code 1607) is of type OctetString.
+    """
+    code = SERVICE_AREA_IDENTITY_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+    
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             ServiceAreaIdentityAVP.code,
+                             ServiceAreaIdentityAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class RoutingAreaIdentityAVP(DiameterAVP, CellIdentityType):
+    """Implementation of Routing-Area-Identity AVP in Section 7.3.120 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The Routing-Area-Identity AVP (AVP Code 1605) is of type OctetString.
+    """
+    code = ROUTING_AREA_IDENTITY_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+    
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             RoutingAreaIdentityAVP.code,
+                             RoutingAreaIdentityAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class SgsnLocationInformationAVP(DiameterAVP, GroupedType):
+    """Implementation of SGSN-Location-Information AVP in Section 7.3.116 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The SGSN-Location-Information AVP (AVP Code 1601) is of type Grouped.
+    """
+    """Section 7.3.116"""
+    code = SGSN_LOCATION_INFORMATION_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+    
+    mandatory = {
+            "cell_global_identity": CellGlobalIdentityAVP,
+            "location_area_identity": LocationAreaIdentityAVP,
+            "service_area_identity": ServiceAreaIdentityAVP,
+            "routing_area_identity": RoutingAreaIdentityAVP,
+            "age_of_location_information": AgeOfLocationInformationAVP,
+    }
+    optionals: dict[str,DiameterAVP]  = {}
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             SgsnLocationInformationAVP.code,
+                             SgsnLocationInformationAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        GroupedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class EpsLocationInformationAVP(DiameterAVP, GroupedType):
+    """Implementation of EPS-Location-Information AVP in Section 7.3.111 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The EPS-User-State AVP (AVP Code 1496) is of type Grouped.
+    """
+    code = EPS_LOCATION_INFORMATION_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+    
+    mandatory = {
+            "mme_location_information": MmeLocationInformationAVP,
+    }
+    optionals = {
+            "sgsn_location_information": SgsnLocationInformationAVP,
+    }
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             EpsLocationInformationAVP.code,
+                             EpsLocationInformationAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        GroupedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class TimeZoneAVP(DiameterAVP, UTF8StringType):
+    """Implementation of Time-Zone AVP in Section 7.3.163
+    of ETSI TS 129 272 V15.10.0 (2020-01).
+
+    The Time-Zone AVP (AVP Code 1642) is of type UTF8String.
+    """
+    code = TIME_ZONE_AVP_CODE
+    vendor_id = None
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self, 
+                             TimeZoneAVP.code,
+                             TimeZoneAVP.vendor_id)
+        DiameterAVP.set_mandatory_bit(self, True)
+        UTF8StringType.__init__(self, data=data)
+
+
+class DaylightSavingTimeAVP(DiameterAVP,EnumeratedType):
+    """Implementation of Daylight-Saving-Type AVP in Section 7.3.164 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The Daylight-Saving-Type AVP (AVP Code 1650) is of type Enumerated.
+    """
+    code =  DAYLIGHT_SAVING_TIME_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    values = [
+        DAYLIGHT_SAVING_TIME_NO_ADJUSTMENT,
+        DAYLIGHT_SAVING_TIME_PLUS_ONE_HOUR_ADJUSTMENT,
+        DAYLIGHT_SAVING_TIME_PLUS_TWO_HOURS_ADJUSTMENT,
+    ]
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             DaylightSavingTimeAVP.code,
+                             DaylightSavingTimeAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        EnumeratedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
+
+
+class LocalTimeZoneAVP(DiameterAVP, GroupedType):
+    """Implementation of Local-Time-Zone AVP in Section 7.3.156 of 
+    ETSI TS 129 272 V16.3.0 (2018-07).
+
+    The EPS-User-State AVP (AVP Code 1649) is of type Grouped.
+    """
+    code = LOCAL_TIME_ZONE_AVP_CODE
+    vendor_id = VENDOR_ID_3GPP
+
+    mandatory = {
+            "time_zone": TimeZoneAVP,
+            "daylight_saving_time": DaylightSavingTimeAVP,
+    }
+    optionals = {
+    }
+
+    def __init__(self, data):
+        DiameterAVP.__init__(self,
+                             LocalTimeZoneAVP.code,
+                             LocalTimeZoneAVP.vendor_id)
+        DiameterAVP.set_vendor_id_bit(self, True)
+        GroupedType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
 

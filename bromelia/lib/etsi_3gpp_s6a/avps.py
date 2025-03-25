@@ -39,6 +39,12 @@ from ...avps.etsi_3gpp.ts_129_272 import CancellationTypeAVP
 from ...avps.etsi_3gpp.ts_129_272 import ClrFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import IdrFlagsAVP
 from ...avps.etsi_3gpp.ts_129_272 import UserIdAVP
+from ...avps.etsi_3gpp.ts_129_272 import ImsVoiceOverPsSessionsSupportedAVP
+from ...avps.etsi_3gpp.ts_129_272 import LastUeActivityTimeAVP
+from ...avps.etsi_3gpp.ts_129_272 import IdaFlagsAVP
+from ...avps.etsi_3gpp.ts_129_272 import EpsUserStateAVP
+from ...avps.etsi_3gpp.ts_129_272 import EpsLocationInformationAVP
+from ...avps.etsi_3gpp.ts_129_272 import LocalTimeZoneAVP
 
 from ...avps.etsi_3gpp.ts_129_336 import ScefIdAVP
 

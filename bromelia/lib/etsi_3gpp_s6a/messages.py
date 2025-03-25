@@ -901,6 +901,74 @@ class InsertSubscriberDataRequest(DiameterRequest):
 
         DiameterRequest._load(self, locals())
 
+class InsertSubscriberDataAnswer(DiameterAnswer):
+    """Implementation of Insert-Subscriber-Data-Answer (IDA) command as per 
+    clause 7.2.10 of ETSI TS 129 272 V15.4.0 (2018-07).
+
+    The Insert-Subscriber-Data-Answer is indicated by the Command Code field
+    set to 319 and Command Flag's 'R' bit cleared.
+
+    Usage::
+
+        >>> from bromelia.lib.etsi_3gpp_s6a import IDA
+        >>> ida = IDA()
+        >>> ida
+        <Diameter Message: 319 [ULA] PXY, 16777251 [3GPP S6a], 5 AVP(s)>
+    """
+
+    mandatory = {
+                    "session_id": SessionIdAVP,
+                    "auth_session_state": AuthSessionStateAVP,
+                    "origin_host": OriginHostAVP,
+                    "origin_realm": OriginRealmAVP,
+    }
+
+    optionals = { 
+                    # "drmp": DrmpAVP,
+                    "vendor_specific_application_id": VendorSpecificApplicationIdAVP,
+                    "supported_features": SupportedFeaturesAVP,
+                    "result_code": ResultCodeAVP,
+                    "experimental_result": ExperimentalResultAVP,
+                    "ims_voice_over_ps_sessions_supported": ImsVoiceOverPsSessionsSupportedAVP,
+                    "last_ue_activity_time": LastUeActivityTimeAVP,
+                    "rat_type": RatTypeAVP,
+                    "ida_flags": IdaFlagsAVP,
+                    "eps_user_state": EpsUserStateAVP,
+                    "eps_location_information": EpsLocationInformationAVP,
+                    "local_time_zone": LocalTimeZoneAVP,
+                    "supported_services": SupportedServicesAVP,
+                    "failed_avp": FailedAvpAVP,
+                    "proxy_info": ProxyInfoAVP,
+                    "route_record": RouteRecordAVP,
+    }
+
+    def __init__(self,
+                 session_id=platform.node(),
+                 drmp=None,
+                 vendor_specific_application_id=[VendorIdAVP(VENDOR_ID_3GPP), AuthApplicationIdAVP(DIAMETER_APPLICATION_S6a_S6d)],
+                 result_code=None,
+                 experimental_result=None,
+                 error_diagnostic=None,
+                 auth_session_state=NO_STATE_MAINTAINED,
+                 origin_host=platform.node(), 
+                 origin_realm=socket.getfqdn(), 
+                 oc_supported_features=None,
+                 oc_olr=None,
+                 load=None,
+                 supported_features=None,
+                 ula_flags=None,
+                 subscription_data=None,
+                 reset_id=None,
+                 failed_avp=None,
+                 proxy_info=None,
+                 route_record=None,
+                 **kwargs):
+
+        DiameterAnswer.__init__(self, 
+                                command_code=INSERT_SUBSCRIBER_DATA_MESSAGE, 
+                                application_id=DIAMETER_APPLICATION_S6a_S6d)
+
+        DiameterAnswer._load(self, locals())
 
 class DeleteSubscriberDataRequest(DiameterRequest):
     """Implementation of Insert-Subscriber-Data-Request (DSR) command as per 

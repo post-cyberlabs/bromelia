@@ -38,6 +38,7 @@ from .constants import DIAMETER_AGENT_SERVER_MODE
 from .constants import DIAMETER_AGENT_TRANSPORT_TYPE_TCP
 from .constants import DIAMETER_AGENT_TRANSPORT_TYPE_SCTP
 from .exceptions import AVPParsingError
+from .exceptions import DataTypeError
 from .exceptions import DiameterApplicationError
 from .exceptions import DiameterAssociationError
 from .messages import DiameterAnswer
@@ -184,12 +185,25 @@ class DiameterAssociation(object):
                     make_logging(msg, disable_else=True)
                     self._recv_messages.put(msg)
                 
-                diameter_conn_logger.debug(f"Found {len(msgs)} Diameter "\
-                                           f"Message(s).")
-            except AVPParsingError:
+                #diameter_conn_logger.debug(f"Found {len(msgs)} Diameter "\
+                #                           f"Message(s).")
+            except AVPParsingError as ex1:
                 diameter_conn_logger.exception(f"AVPParsingError has "\
-                                               f"been raised due stream: "\
-                                               f"{self.transport._recv_data_stream.hex()}")
+                                               f"been raised due to stream: "\
+                                               f"{data_stream.hex()}")
+                diameter_conn_logger.exception(str(ex1))
+            except DataTypeError as ex2:
+                diameter_conn_logger.exception(f"DataTypeError has "\
+                                               f"been raised due to stream: "\
+                                               f"{data_stream.hex()}")
+                diameter_conn_logger.exception(str(ex2))
+            except Exception as ex3:
+                diameter_conn_logger.exception(f"UnknownException has "\
+                                               f"been raised due to stream: "\
+                                               f"{data_stream.hex()}")
+                diameter_conn_logger.exception(str(ex3))
+
+
 
             self.lock.release()
 

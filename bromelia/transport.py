@@ -390,9 +390,9 @@ class TcpServer(TcpConnection):
     def __init__(self, ip_address: str, port: str) -> None:
         super().__init__(ip_address, port)
         self.dbgkey = self.__class__.__name__
-        
 
     def start(self) -> None:
+        self.lock.acquire()
         try:
             self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tcp_connection.debug(f"[{self.dbgkey} Socket-{self.sock_id}] Server-side "\
@@ -414,11 +414,12 @@ class TcpServer(TcpConnection):
             tcp_server.debug(f"[{self.dbgkey} Socket-{self.sock_id}] Registering "\
                              f"Socket into Selector address: "\
                              f"{self.server_selector.get_map()}")
-
+            self.lock.release()
         except Exception as e:
             tcp_server.exception(f"{self.dbgkey} server_error: {e.args}")
             # Raise exception because it's not possible to
             # differentiate failed socket from opening socket
+            self.lock.release()
             raise e
 
 

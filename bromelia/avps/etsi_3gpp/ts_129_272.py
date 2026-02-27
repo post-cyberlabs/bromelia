@@ -1439,7 +1439,7 @@ class TrackingAreaIdentityAVP(DiameterAVP, CellIdentityType):
         DiameterAVP.set_vendor_id_bit(self, True)
         CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
 
-    def decode(self) -> tuple[str,str,int]:
+    def decode(self) -> tuple[str,str,str]:
         """Decode the TAI into MCC, MNC and TAC.
 
         As per 3GPP TS 23.003 Section 19.4.2.3, the TAI is the
@@ -1449,7 +1449,7 @@ class TrackingAreaIdentityAVP(DiameterAVP, CellIdentityType):
         """
         vals = self.decode_mncmcc()
         tac = int.from_bytes(self.data[3:5], byteorder='big')
-        return vals[0], vals[1], tac
+        return vals[0], vals[1], str(tac)
 
 
 class EUtranCellGlobalIdentityAVP(DiameterAVP, CellIdentityType):
@@ -1469,7 +1469,7 @@ class EUtranCellGlobalIdentityAVP(DiameterAVP, CellIdentityType):
         CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
 
 
-    def decode(self) -> tuple[str,str,int]:
+    def decode(self) -> tuple[str,str,str]:
         """Decode the ECGI into MCC, MNC and ECI.
 
         As per 3GPP TS 23.003 Section 19.6, the ECGI is the concatenation
@@ -1478,7 +1478,7 @@ class EUtranCellGlobalIdentityAVP(DiameterAVP, CellIdentityType):
         """
         vals = self.decode_mncmcc()
         eci = int.from_bytes(self.data[3:7], byteorder='big') & 0x0FFFFFFF
-        return vals[0], vals[1], eci
+        return vals[0], vals[1], str(eci)
 
 
 class AgeOfLocationInformationAVP(DiameterAVP, Unsigned32Type):

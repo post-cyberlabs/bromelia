@@ -1439,6 +1439,18 @@ class TrackingAreaIdentityAVP(DiameterAVP, CellIdentityType):
         DiameterAVP.set_vendor_id_bit(self, True)
         CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
 
+    def decode(self) -> tuple[str,str,str]:
+        """Decode the TAI into MCC, MNC and TAC.
+
+        As per 3GPP TS 23.003 Section 19.4.2.3, the TAI is the
+        concatenation of the PLMN-Id (3 bytes, TBCD-encoded MCC+MNC)
+        and the TAC, which is a fixed-length 2-octet field coded in
+        full hexadecimal.
+        """
+        vals = self.decode_mncmcc()
+        tac = int.from_bytes(self.data[3:5], byteorder='big')
+        return vals[0], vals[1], str(tac)
+
 
 class EUtranCellGlobalIdentityAVP(DiameterAVP, CellIdentityType):
     """Implementation of E-UTRAN-Cell-Global-Identity AVP in Section 7.3.117 of 
@@ -1457,9 +1469,16 @@ class EUtranCellGlobalIdentityAVP(DiameterAVP, CellIdentityType):
         CellIdentityType.__init__(self, data=data, vendor_id=VENDOR_ID_3GPP)
 
 
-    def decode(self) -> tuple[str,str,str,str]:
+    def decode(self) -> tuple[str,str,str]:
+        """Decode the ECGI into MCC, MNC and ECI.
+
+        As per 3GPP TS 23.003 Section 19.6, the ECGI is the concatenation
+        of the PLMN-Id (3 bytes, TBCD-encoded MCC+MNC) and the ECI, which
+        is a fixed-length 28-bit field coded in full hexadecimal.
+        """
         vals = self.decode_mncmcc()
-        return vals[0], vals[1], self.decode_tbcd(self.data[3:5]), self.decode_tbcd(self.data[5:])
+        eci = int.from_bytes(self.data[3:7], byteorder='big') & 0x0FFFFFFF
+        return vals[0], vals[1], str(eci)
 
 
 class AgeOfLocationInformationAVP(DiameterAVP, Unsigned32Type):
